@@ -70,7 +70,7 @@ def run_tests(_globals, fn_names=None):
 
     failure_name_exc_pairs = []
     for fn_name in fn_names:
-        stdout.write('testing {}'.format(fn_name[5:]))
+        stdout.write(fn_name)
         stdout.flush()
         try:
             _globals[fn_name]()
