@@ -94,6 +94,8 @@ def run_tests(_globals, fn_names=None):
             print(f'{fn_name} - FAILED')
             print(f'{type(exc)} - "{str(exc)}"')
             print()
+        # Exit with a non-zero code.
+        exit(1)
 
 ###############################################################################
 # Command line interface
