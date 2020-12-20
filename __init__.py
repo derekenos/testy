@@ -86,9 +86,8 @@ def run_tests(_globals, fn_names=None):
 
     if failure_name_exc_pairs:
         print()
-        print('*************************')
-        print('**** Failure Details ****')
-        print('*************************')
+        print('Failure details')
+        print('---------------')
         print()
         for fn_name, exc in failure_name_exc_pairs:
             print(f'{fn_name} - FAILED')
