@@ -58,15 +58,30 @@ assertIsBytes = _get_assertIsInstance(bytes)
 # Test Runner
 ###############################################################################
 
-def run_tests(_globals, fn_names=None):
+_fn_cls = type(lambda: None)
+
+# Define a helper to return the names of functions in _globals that start with
+# "test_" and satisfy a predicate.
+get_test_func_names = lambda _globals, pred: [
+    k for k, v in sorted(_globals.items())
+    if k.startswith('test_') and pred(k) and isinstance(v, _fn_cls)
+]
+
+def run_tests(_globals, fn_names=None, fn_name_prefixes=None):
     # If fn_names is specified, run those functions, otherwise run all
     # global functions with a name that starts with "test_".
-    if fn_names is None:
-        fn_cls = type(run_tests)
-        fn_names = [
-            k for k, v in sorted(_globals.items())
-            if k.startswith('test_') and isinstance(v, fn_cls)
-        ]
+    if fn_names:
+        # Get all the function names that match a name in fn_names.
+        fn_names = get_test_func_names(_globals, lambda x: x in fn_names)
+    elif fn_name_prefixes:
+        # Get all the function names that match a prefix in fn_name_prefixes.
+        fn_names = get_test_func_names(
+            _globals,
+            lambda x: any(x.startswith(y) for y in fn_name_prefixes)
+        )
+    else:
+        # Get all the function names that start with "test_".
+        fn_names = get_test_func_names(_globals, lambda x: True)
 
     failure_name_exc_pairs = []
     for fn_name in fn_names:
@@ -104,13 +119,11 @@ def cli(_globals):
     parser = ArgumentParser()
     # Add a --test argument to allow the specification of individual test
     # function names to run.
-    parser.add_argument('--test', action="append")
+    g = parser.add_mutually_exclusive_group()
+    g.add_argument('--test', action='append',
+                   help='The name of a test function to run')
+    g.add_argument('--test-prefix', action='append',
+                   help='The prefix of the function names to run')
     args = parser.parse_args()
 
-    if args.test is not None:
-        bad_names = [x for x in args.test if not x.startswith('test_')]
-        if bad_names:
-            parser.error('--test args are expected to start with "test_", '\
-                         f'got: {bad_names}')
-
-    run_tests(_globals, args.test)
+    run_tests(_globals, args.test, args.test_prefix)
