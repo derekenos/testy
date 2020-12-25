@@ -1,7 +1,7 @@
 
 from decimal import Decimal
 
-from testy import (
+from __init__ import (
     DidNotRaise,
     assertEqual,
     assertFalse,
@@ -96,3 +96,5 @@ if __name__ == '__main__':
         assertTrue(True)
     except AssertionError:
         pass
+
+    print('All tests passed')
