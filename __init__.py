@@ -1,5 +1,6 @@
 """A minimal, non-magical, non-class-based testing library.
 """
+import asyncio
 from argparse import ArgumentParser
 from decimal import Decimal
 from sys import stdout
@@ -36,6 +37,14 @@ def assertEqual(result, expected):
 def assertRaises(exc, fn, *args, **kwargs):
     try:
         fn(*args, **kwargs)
+    except exc as e:
+        return e
+    else:
+        raise DidNotRaise(f'{exc.__name__} not raised')
+
+async def assertAsyncRaises(exc, fn, *args, **kwargs):
+    try:
+        await fn(*args, **kwargs)
     except exc as e:
         return e
     else:
@@ -83,12 +92,19 @@ def run_tests(_globals, fn_names=None, fn_name_prefixes=None):
         # Get all the function names that start with "test_".
         fn_names = get_test_func_names(_globals, lambda x: True)
 
+    event_loop = asyncio.get_event_loop()
+
     failure_name_exc_pairs = []
     for fn_name in fn_names:
         stdout.write(fn_name)
         stdout.flush()
+        fn = _globals[fn_name]
         try:
-            _globals[fn_name]()
+            # If test function is a coroutine, execute it with the event loop.
+            if asyncio.iscoroutinefunction(fn):
+                event_loop.run_until_complete(fn())
+            else:
+                fn()
         except Skip:
             stdout.write(' - SKIPPED\n')
         except Exception as e:
